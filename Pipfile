@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+pylint-flask-sqlalchemy = "*"
+
+[packages]
+flask = "*"
+flask-sqlalchemy = "*"
+gunicorn = "*"
+authlib = "*"
+requests = "*"
+flask-login = "*"
+Python-dotenv = "*"
+psycopg2-binary = "*"
+sentry-sdk = {extras = ["flask"], version = "*"}
+
+[requires]
+python_version = "3.8"
