@@ -48,6 +48,7 @@ def callback():
         db.session.add(user)
     else:
         existing_user.last_login = datetime.utcnow()
+        user = existing_user
 
     db.session.commit() # Save changes to database
 
@@ -59,7 +60,7 @@ def callback():
 @login_manager.user_loader
 def load_user(user_id):
     """Check if user is logged-in upon page load."""
-    if user_id is not None:
+    if (user_id is not None) and (user_id != 'None'):
         return User.query.get(user_id)
     return None
 

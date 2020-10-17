@@ -12,5 +12,7 @@
 <body class="min-h-screen bg-gray-900">
     {% block body %}
     {% endblock %}
+    <script>const PAGE_NAME={% block jsPageName %}''{% endblock %};</script>
+    <script src="{{ url_for('static', filename='app.js')}}"></script>
 </body>
 </html>
