@@ -1,4 +1,4 @@
-"""Routes for main application."""
+"""Routes for application pages."""
 
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import current_user, login_required, logout_user
@@ -15,7 +15,7 @@ main_bp = Blueprint(
 def home():
     """Logged-in User Dashboard."""
     return render_template(
-        'home.html',
+        'home.html.j2',
         current_user=current_user
     )
 

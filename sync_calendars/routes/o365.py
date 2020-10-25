@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 from werkzeug.exceptions import BadRequest
 
 from flask import redirect, request, Blueprint, url_for, current_app, session
+from flask_login import current_user, login_required
 
 from sync_calendars import db, oauth
-from sync_calendars.models import O365Token
+from sync_calendars.models import Calendar, CalendarEnum
 
 # Blueprint Configuration
 o365_bp = Blueprint(
@@ -19,6 +20,7 @@ o365_app = oauth.register(
 )
 
 @o365_bp.route("/o365/connect")
+@login_required
 def connect():
     """Initiate authentication request with Microsoft Office 365"""
 
@@ -41,6 +43,7 @@ def connect():
     return o365_app.authorize_redirect(redirect_uri, scope=connect_scope, response_type='code')
 
 @o365_bp.route("/o365/callback")
+@login_required
 def callback():
     """Handle callback from O365"""
 
@@ -56,14 +59,16 @@ def callback():
 
     # save auth tokens in DB for later use
     # Q: What if user does not save the sync flow?
-    o365_token = O365Token(
+    o365_token = Calendar(
+        type=CalendarEnum.O365,
         email=connect_email,
         access_token=token['access_token'],
         refresh_token=token['refresh_token'],
-        expires_at = datetime.fromtimestamp(token['expires_at'])
+        expires_at = datetime.fromtimestamp(token['expires_at']),
+        user_id=current_user.id
     )
 
-    existing_token = O365Token.query.filter_by(email=connect_email).first()
+    existing_token = Calendar.query.filter_by(email=connect_email).first()
     if existing_token is None:
         db.session.add(o365_token)
     else:

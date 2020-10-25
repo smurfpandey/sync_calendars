@@ -25,16 +25,16 @@ def create_app():
     oauth.init_app(app)
 
     with app.app_context():
-        from sync_calendars.routes import auth, o365, main
+        from sync_calendars.routes import auth, o365, views, api
 
         # Register Blueprints
-        app.register_blueprint(main.main_bp)
+        app.register_blueprint(views.main_bp)
         app.register_blueprint(auth.auth_bp)
         app.register_blueprint(o365.o365_bp)
+        app.register_blueprint(api.api_bp)
 
         # Create Database Models
         db.create_all()
-
 
     # Handling error 400 and displaying relevant web page
     @app.errorhandler(400)

@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 pylint-flask-sqlalchemy = "*"
+autopep8 = "*"
 
 [packages]
 flask = "*"
@@ -19,4 +20,4 @@ psycopg2-binary = "*"
 sentry-sdk = {extras = ["flask"], version = "*"}
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
