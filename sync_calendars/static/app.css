@@ -1,3 +1,13 @@
+@keyframes shake {
+    from { left: -5px; }
+    to { right: -5px; }
+}
+
+.animate-shake {
+    animation: shake .1s linear;
+    animation-iteration-count: 3;
+}
+
 .icon {
     display: inline-block;
     width: 1em;

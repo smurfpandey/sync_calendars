@@ -6,13 +6,19 @@ from uuid import uuid4
 
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 
 from sync_calendars import db
+
+user_cal_association = db.Table('user_calendar',
+    db.Column('user_id', UUID(as_uuid=True), db.ForeignKey('users.id', ondelete='CASCADE')),
+    db.Column('calendar_id', UUID(as_uuid=True), db.ForeignKey('calendars.id', ondelete='CASCADE'))
+)
 
 @dataclass
 class User(UserMixin, db.Model):
     """User account model."""
+    id: str
+    email: str
 
     __tablename__ = 'users'
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid4, nullable=False)
@@ -20,7 +26,9 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(40), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
-    calendars = relationship('Calendar', back_populates='user')
+    calendars = db.relationship('Calendar',
+        secondary=user_cal_association,
+        back_populates='users')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -39,7 +47,6 @@ class Calendar(db.Model):
     id: str
     email: str
     type: str
-    user_id: str
 
     __tablename__ = 'calendars'
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid4, nullable=False)
@@ -50,8 +57,27 @@ class Calendar(db.Model):
     expires_at = db.Column(db.DateTime, nullable=False)
     last_update_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'))
-    user = relationship('User', back_populates='calendars')
+    users = db.relationship('User',
+        secondary=user_cal_association,
+        back_populates='calendars')
 
     def __repr__(self):
         return '<Calendar {}>'.format(self.email)
+
+@dataclass
+class SyncFlow(db.Model):
+    """SyncFlow model"""
+    id: str
+    source: str
+    destination: str
+    user: str
+
+    __tablename__ = 'sync_flows'
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid4, nullable=False)
+    source = db.Column(UUID(as_uuid=True), db.ForeignKey(Calendar.id, ondelete='CASCADE'))
+    destination = db.Column(UUID(as_uuid=True), db.ForeignKey(Calendar.id, ondelete='CASCADE'))
+    user = db.Column(UUID(as_uuid=True), db.ForeignKey(User.id, ondelete='CASCADE'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return '<SyncFlow {}>'.format(self.id)

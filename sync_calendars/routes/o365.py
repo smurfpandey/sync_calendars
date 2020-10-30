@@ -1,8 +1,8 @@
 """Routes for handling O365 connectivity"""
-from datetime import datetime, timedelta
+from datetime import datetime
 from werkzeug.exceptions import BadRequest
 
-from flask import redirect, request, Blueprint, url_for, current_app, session
+from flask import request, Blueprint, url_for, session
 from flask_login import current_user, login_required
 
 from sync_calendars import db, oauth
@@ -18,6 +18,7 @@ o365_bp = Blueprint(
 o365_app = oauth.register(
     'o365'
 )
+
 
 @o365_bp.route("/o365/connect")
 @login_required
@@ -36,11 +37,18 @@ def connect():
         raise BadRequest()
 
     session['o365_connect_email'] = connect_email
-    session['o365_connect_scope'] = connect_scope # MS requires scope for exchanging auth code for tokens
+    # MS needs scope for getting access tokens
+    session['o365_connect_scope'] = connect_scope
 
     redirect_uri = url_for('o365_bp.callback', _external=True)
 
-    return o365_app.authorize_redirect(redirect_uri, scope=connect_scope, response_type='code')
+    return o365_app.authorize_redirect(
+        redirect_uri,
+        scope=connect_scope,
+        prompt='select_account',
+        login_hint=connect_email
+    )
+
 
 @o365_bp.route("/o365/callback")
 @login_required
@@ -59,23 +67,26 @@ def callback():
 
     # save auth tokens in DB for later use
     # Q: What if user does not save the sync flow?
-    o365_token = Calendar(
+    o365_cal = Calendar(
         type=CalendarEnum.O365,
         email=connect_email,
         access_token=token['access_token'],
         refresh_token=token['refresh_token'],
-        expires_at = datetime.fromtimestamp(token['expires_at']),
-        user_id=current_user.id
+        expires_at=datetime.fromtimestamp(token['expires_at'])
     )
 
-    existing_token = Calendar.query.filter_by(email=connect_email).first()
-    if existing_token is None:
-        db.session.add(o365_token)
+    existing_cal = Calendar.query.filter_by(email=connect_email).first()
+    if existing_cal is None:
+        o365_cal.users.append(current_user)
+        db.session.add(o365_cal)
     else:
-        existing_token.access_token = o365_token.access_token
-        existing_token.refresh_token = o365_token.refresh_token
-        existing_token.expires_at = o365_token.expires_at
-        existing_token.last_update_at = datetime.utcnow()
+        if not current_user in existing_cal.users:
+            existing_cal.users.append(current_user)
+
+        existing_cal.access_token = o365_cal.access_token
+        existing_cal.refresh_token = o365_cal.refresh_token
+        existing_cal.expires_at = o365_cal.expires_at
+        existing_cal.last_update_at = datetime.utcnow()
 
     db.session.commit()
 
