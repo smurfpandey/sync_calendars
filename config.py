@@ -35,3 +35,7 @@ class Config:
     O365_ACCESS_TOKEN_URL = O365_AUTHORITY + "/oauth2/v2.0/token"
     O365_API_BASE_URL = "https://graph.microsoft.com/v1.0/"
 
+    # Celery
+    CELERY_BROKER_URL = environ.get('CELERY_BROKER_URL')
+    CELERY_RESULT_BACKEND = environ.get('CELERY_RESULT_BACKEND')
+

@@ -64,6 +64,13 @@ class Calendar(db.Model):
     def __repr__(self):
         return '<Calendar {}>'.format(self.email)
 
+    def to_json(self):
+        return {
+            'id': str(self.id),
+            'type': str(self.type.value),
+            'email': self.email
+        }
+
 @dataclass
 class SyncFlow(db.Model):
     """SyncFlow model"""

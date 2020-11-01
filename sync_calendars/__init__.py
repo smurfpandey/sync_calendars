@@ -7,19 +7,34 @@ from authlib.integrations.flask_client import OAuth
 from flask_login import LoginManager
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from flask_sqlalchemy import SQLAlchemy
 
+from sync_calendars.tasks import init_celery_app
+
+celery: dict = None
 db = SQLAlchemy()
 login_manager = LoginManager()
 oauth = OAuth()
-sentry_sdk.init(environ.get('SENTRY_DSN'),integrations=[FlaskIntegration()])
+sentry_sdk.init(
+    environ.get('SENTRY_DSN'),
+    integrations=[
+        FlaskIntegration(),
+        CeleryIntegration(),
+        SqlalchemyIntegration()
+    ]
+)
+
 
 def create_app():
     """Construct the core app object."""
+    global celery
     app = Flask(__name__, instance_relative_config=False)
     app.config.from_object('config.Config')
 
     # Initialize Plugins
+    celery = init_celery_app(app)
     db.init_app(app)
     login_manager.init_app(app)
     oauth.init_app(app)

@@ -4,6 +4,7 @@ from flask_login import current_user, login_required
 
 from sync_calendars import db
 from sync_calendars.models import Calendar, User, SyncFlow
+from sync_calendars.tasks import calendar_tasks
 
 # Blueprint Configuration
 api_bp = Blueprint(
@@ -86,7 +87,9 @@ def save_sync_for_user():
     
     # 3. Create "work": Start Sync
     # 3.1. Subscribe to get notifications from source calendar
+    calendar_tasks.subscribe_to_calendar.delay(source_cal.to_json())
     # 3.2. Update destination with all future events from source
+    calendar_tasks.initial_load.delay(source_cal.to_json(), dest_cal.to_json())
 
     # 4. Tada!
     return make_response('Ok', 201)
