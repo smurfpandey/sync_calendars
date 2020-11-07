@@ -87,9 +87,9 @@ def save_sync_for_user():
     
     # 3. Create "work": Start Sync
     # 3.1. Subscribe to get notifications from source calendar
-    calendar_tasks.subscribe_to_calendar.delay(source_cal.to_json())
+    calendar_tasks.subscribe_to_calendar.delay(source_cal.to_simple_obj())
     # 3.2. Update destination with all future events from source
-    calendar_tasks.initial_load.delay(source_cal.to_json(), dest_cal.to_json())
+    calendar_tasks.initial_load.delay(source_cal.to_simple_obj(), dest_cal.to_simple_obj())
 
     # 4. Tada!
     return make_response('Ok', 201)

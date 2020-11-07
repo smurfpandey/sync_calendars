@@ -1,11 +1,12 @@
 """Initialize tasks engine"""
 
-from celery import Celery
 
-def init_celery_app(app):
+
+def init_celery_app(celery, app):
     """Function to create new Celery object to use with Flask app"""
-    celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'],
-                    broker=app.config['CELERY_BROKER_URL'])
+    # celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'],
+    #                 broker=app.config['CELERY_BROKER_URL'],
+    #                 include=['calendar_tasks'])
     celery.conf.update(app.config)
     TaskBase = celery.Task
 
@@ -17,5 +18,3 @@ def init_celery_app(app):
                 return TaskBase.__call__(self, *args, **kwargs)
 
     celery.Task = ContextTask
-
-    return celery

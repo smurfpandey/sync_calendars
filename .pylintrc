@@ -140,6 +140,7 @@ disable=print-statement,
         exception-escape,
         comprehension-escape,
         C0114, # missing-module-docstring
+        no-self-argument,
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -293,7 +294,8 @@ good-names=i,
            k,
            ex,
            Run,
-           _
+           _,
+           id
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted

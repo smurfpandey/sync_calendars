@@ -5,7 +5,7 @@ from enum import Enum
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from sync_calendars import db
 
@@ -57,6 +57,8 @@ class Calendar(db.Model):
     expires_at = db.Column(db.DateTime, nullable=False)
     last_update_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    subscription_id = db.Column(db.String(40), unique=True, nullable=True)
+    change_subscrition = db.Column(JSONB)
     users = db.relationship('User',
         secondary=user_cal_association,
         back_populates='calendars')
@@ -64,7 +66,7 @@ class Calendar(db.Model):
     def __repr__(self):
         return '<Calendar {}>'.format(self.email)
 
-    def to_json(self):
+    def to_simple_obj(self):
         return {
             'id': str(self.id),
             'type': str(self.type.value),

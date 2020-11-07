@@ -2,6 +2,7 @@
 from os import environ
 from werkzeug.exceptions import BadRequest
 
+from celery import Celery
 from flask import Flask, render_template
 from authlib.integrations.flask_client import OAuth
 from flask_login import LoginManager
@@ -13,7 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from sync_calendars.tasks import init_celery_app
 
-celery: dict = None
+celery = Celery(__name__)
 db = SQLAlchemy()
 login_manager = LoginManager()
 oauth = OAuth()
@@ -26,15 +27,13 @@ sentry_sdk.init(
     ]
 )
 
-
 def create_app():
-    """Construct the core app object."""
-    global celery
+    """Construct the core app object."""    
     app = Flask(__name__, instance_relative_config=False)
     app.config.from_object('config.Config')
 
     # Initialize Plugins
-    celery = init_celery_app(app)
+    init_celery_app(celery, app)
     db.init_app(app)
     login_manager.init_app(app)
     oauth.init_app(app)

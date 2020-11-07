@@ -1,11 +1,12 @@
 """Routes for handling O365 connectivity"""
-from datetime import datetime
+from datetime import datetime, timezone
 from werkzeug.exceptions import BadRequest
 
 from flask import request, Blueprint, url_for, session
 from flask_login import current_user, login_required
 
-from sync_calendars import db, oauth
+from sync_calendars import db
+from sync_calendars.integrations import O365Client
 from sync_calendars.models import Calendar, CalendarEnum
 
 # Blueprint Configuration
@@ -15,10 +16,7 @@ o365_bp = Blueprint(
     static_folder='static'
 )
 
-o365_app = oauth.register(
-    'o365'
-)
-
+o365_app = O365Client().app
 
 @o365_bp.route("/o365/connect")
 @login_required
@@ -72,7 +70,7 @@ def callback():
         email=connect_email,
         access_token=token['access_token'],
         refresh_token=token['refresh_token'],
-        expires_at=datetime.fromtimestamp(token['expires_at'])
+        expires_at=datetime.fromtimestamp(token['expires_at'], timezone.utc)
     )
 
     existing_cal = Calendar.query.filter_by(email=connect_email).first()
