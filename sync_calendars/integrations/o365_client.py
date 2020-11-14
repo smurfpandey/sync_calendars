@@ -1,5 +1,6 @@
 """Client for accessing O365"""
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from uuid import uuid4
 
 from authlib.integrations.requests_client import OAuth2Session
 from flask import current_app
@@ -53,11 +54,11 @@ class O365Client:
     def __update_token(name, token, refresh_token=None, access_token=None):
         """Method to update token in db on refresh"""
         if refresh_token:
-            # TODO: Find a better way to handle multiple types
+            # TODO: Find a better way to handle multiple calendar types
             item = Calendar.query.filter_by(
                 type=CalendarEnum.O365, refresh_token=refresh_token).first()
         elif access_token:
-            # TODO: Find a better way to handle multiple types
+            # TODO: Find a better way to handle multiple calendar types
             item = Calendar.query.filter_by(
                 type=CalendarEnum.O365, access_token=access_token).first()
         else:
@@ -81,14 +82,16 @@ class O365Client:
 
     def create_change_subscription(self):
         """Method to create change subscription"""
+        notification_url = current_app.config['APP_HOSTNAME'] + '/o365/change'
+        expiration = datetime.utcnow() + timedelta(minutes=4230)
         req_data = {
             'changeType': 'created,updated,deleted',
-            'notificationUrl': '',
-            'lifecycleNotificationUrl': '',
+            'notificationUrl': notification_url,
+            'lifecycleNotificationUrl': notification_url,
             'resource': 'me/events',
-            'expirationDateTime': '',
-            'clientState': ''
+            'expirationDateTime': expiration.isoformat() + "Z",
+            'clientState': str(uuid4())
         }
         req_url = self.api_base_url + 'subscriptions'
-
+        print(req_data)
         return self.app.post(req_url, json=req_data)

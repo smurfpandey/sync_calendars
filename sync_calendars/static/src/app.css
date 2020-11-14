@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @keyframes shake {
     from { left: -5px; }
     to { right: -5px; }

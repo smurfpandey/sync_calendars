@@ -9,9 +9,7 @@ from sync_calendars import db, login_manager, oauth
 
 # Blueprint Configuration
 auth_bp = Blueprint(
-    'auth_bp', __name__,
-    template_folder='templates',
-    static_folder='static'
+    'auth_bp', __name__
 )
 
 auth0 = oauth.register(

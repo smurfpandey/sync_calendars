@@ -1,6 +1,7 @@
 """Calendar related tasks"""
+from datetime import datetime
 
-from sync_calendars import celery
+from sync_calendars import celery, db
 from sync_calendars.integrations import O365Client
 from sync_calendars.models import Calendar
 
@@ -18,6 +19,9 @@ def subscribe_to_calendar(calendar):
     # 1.1 If subscription exists
     if obj_cal.subscription_id is not None:
         # 1.2 If subscription has not expired
+        expiry_date = obj_cal.change_subscrition['expirationDateTime']
+        expiry_date = datetime.strptime(expiry_date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        print(expiry_date)
         return True
 
     # 2. If not, subscribe
@@ -33,7 +37,20 @@ def subscribe_to_calendar(calendar):
     if 'id' not in subscription:
         # We failed :(
         return False
+    
+    # 2.1. Save in DB
+    obj_cal.subscription_id = subscription['id']
+    obj_cal.change_subscrition = subscription
+    obj_cal.last_update_at = datetime.utcnow()
 
-    print(subscription)    
+    db.session.commit()
+
     # 3. Set schedule to renew?
+    return True
+
+@celery.task()
+def handle_change_notification(notification):
+    """Process individual notification from O365"""
+
+    subscription_id = notification['subscriptionId']
     return True

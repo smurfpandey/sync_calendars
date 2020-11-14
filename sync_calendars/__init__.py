@@ -28,9 +28,15 @@ sentry_sdk.init(
 )
 
 def create_app():
-    """Construct the core app object."""    
+    """Construct the core app object."""
     app = Flask(__name__, instance_relative_config=False)
     app.config.from_object('config.Config')
+
+     # config file has STATIC_FOLDER='/static/dist'
+    app.static_url_path=app.config.get('STATIC_FOLDER')
+
+    # set the absolute path to the static folder
+    app.static_folder=app.root_path + app.static_url_path
 
     # Initialize Plugins
     init_celery_app(celery, app)

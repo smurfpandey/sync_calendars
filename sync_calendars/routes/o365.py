@@ -2,23 +2,22 @@
 from datetime import datetime, timezone
 from werkzeug.exceptions import BadRequest
 
-from flask import request, Blueprint, url_for, session
+from flask import request, Blueprint, url_for, session, make_response
 from flask_login import current_user, login_required
 
 from sync_calendars import db
 from sync_calendars.integrations import O365Client
 from sync_calendars.models import Calendar, CalendarEnum
+from sync_calendars.tasks import calendar_tasks
 
 # Blueprint Configuration
 o365_bp = Blueprint(
-    'o365_bp', __name__,
-    template_folder='templates',
-    static_folder='static'
+    'o365_bp', __name__
 )
 
 o365_app = O365Client().app
 
-@o365_bp.route("/o365/connect")
+@o365_bp.route('/o365/connect')
 @login_required
 def connect():
     """Initiate authentication request with Microsoft Office 365"""
@@ -26,7 +25,7 @@ def connect():
     connect_type = request.args.get('type')
     connect_email = request.args.get('email')
     connect_scope = "offline_access User.Read"
-    if connect_type == "SOURCE":
+    if connect_type.upper() == "SOURCE":
         connect_scope = connect_scope + " Calendars.Read"
     else:
         connect_scope = connect_scope + " Calendars.ReadWrite"
@@ -48,7 +47,7 @@ def connect():
     )
 
 
-@o365_bp.route("/o365/callback")
+@o365_bp.route('/o365/callback')
 @login_required
 def callback():
     """Handle callback from O365"""
@@ -89,3 +88,17 @@ def callback():
     db.session.commit()
 
     return "Ok"
+
+@o365_bp.route('/o365/change', methods=['POST'])
+def change_notification():
+    """Handle change notifications from O365"""
+    validation_token = request.args.get('validationToken', '')
+    if validation_token != '':
+        return make_response(validation_token, 200)
+
+    notification = request.get_json()
+    
+    for notif in notification.value:
+        caled
+
+    return make_response('Ok', 202)

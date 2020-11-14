@@ -1,5 +1,8 @@
 .vscode
 certs
+node_modules
+sync_calendars/static/dist
+.cache
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

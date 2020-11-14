@@ -5,9 +5,7 @@ from flask_login import current_user, login_required, logout_user
 
 # Blueprint Configuration
 main_bp = Blueprint(
-    'main_bp', __name__,
-    template_folder='templates',
-    static_folder='static'
+    'main_bp', __name__
 )
 
 @main_bp.route('/', methods=['GET'])

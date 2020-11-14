@@ -1,5 +1,7 @@
 'use strict';
 
+import './app.css';
+
 function App() {
     const setSVGIcon = (svgElement, iconName) => {
         var useSVG = document.createElementNS('http://www.w3.org/2000/svg', 'use');
@@ -17,12 +19,13 @@ function App() {
             return;
         }
 
+        const calType = elem_this.dataset.calType;
         const status = elem_this.dataset.status;
-        if(status == 'Y' || status === 'N') {
+        if (status == 'Y' || status === 'N') {
             // Status has already been checked
             return;
         }
-        
+
         // set loader animation
         setSVGIcon(svgIcon, 'icon-loading');
         svgIcon.classList.add('animate-spin');
@@ -41,9 +44,9 @@ function App() {
 
             elem_this.classList.remove('border-orange-700');
             elem_this.classList.add('border-green-700');
-            
+
             setSVGIcon(svgIcon, 'icon-calendar-check-o');
-            
+
             dvAuthorize.classList.add('hidden');
             return;
         }
@@ -51,9 +54,10 @@ function App() {
         elem_this.classList.remove('border-green-700');
         elem_this.classList.add('border-orange-700');
         setSVGIcon(svgIcon, 'icon-calendar-times-o');
-        
+
         dvAuthorize.classList.remove('hidden');
-        dvAuthorize.children[0].href = `/o365/connect?email=${email}`;
+
+        dvAuthorize.children[0].href = `/o365/connect?email=${email}&type=${calType}`;
     };
 
     const fnResetEmailStatus = (event) => {
@@ -79,10 +83,10 @@ function App() {
 
         if (sourceCalEmailStatus != 'Y') {
             elem_txtSourceSyncEmail.classList.add('border-red-500');
-            
+
             elem_txtSourceSyncEmail.parentElement.classList.add('animate-shake');
             // remove the class after the animation completes
-            setTimeout(function() {
+            setTimeout(function () {
                 elem_txtSourceSyncEmail.parentElement.classList.remove('animate-shake');
             }, 300);
 
@@ -91,10 +95,10 @@ function App() {
 
         if (destCalEmailStatus != 'Y') {
             elem_txtDestSyncEmail.classList.add('border-red-500');
-            
+
             elem_txtDestSyncEmail.parentElement.classList.add('animate-shake');
             // remove the class after the animation completes
-            setTimeout(function() {
+            setTimeout(function () {
                 elem_txtDestSyncEmail.parentElement.classList.remove('animate-shake');
             }, 300);
 
@@ -124,7 +128,7 @@ function App() {
         const response = await fetch('/api/syncs', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json;charset=utf-8'
+                'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify(reqData)
         });
@@ -146,17 +150,31 @@ function App() {
         }
     }
 
+    const fnToggleModal = (event) => {
+        const body = document.querySelector('body');
+        const modal = document.querySelector('.modal');
+        modal.classList.toggle('hidden');
+        modal.classList.toggle('pointer-events-none');
+        body.classList.toggle('modal-active');
+    }
+
     const fnAttachEventListener = (pageName) => {
         if (pageName === 'home') {
             const elem_txtSourceSyncEmail = document.getElementById('txtSourceSyncEmail');
             const elem_txtDestSyncEmail = document.getElementById('txtDestSyncEmail');
             const elem_btnSaveSyncFlow = document.getElementById('btnSaveSyncFlow');
+            const elem_btnShowModal = document.getElementById('btnShowModal');
+            const elem_divOverlay = document.querySelector('.modal-overlay');
+            const elem_btnCloseModal = document.querySelector('.modal-close');
 
             elem_txtSourceSyncEmail.addEventListener('blur', fnCheckEmailConnectStatus);
             elem_txtDestSyncEmail.addEventListener('blur', fnCheckEmailConnectStatus);
             elem_txtSourceSyncEmail.addEventListener('change', fnResetEmailStatus);
             elem_txtDestSyncEmail.addEventListener('change', fnResetEmailStatus);
-            elem_btnSaveSyncFlow.addEventListener('click', fnSaveSyncFlow)
+            elem_btnSaveSyncFlow.addEventListener('click', fnSaveSyncFlow);
+            elem_btnShowModal.addEventListener('click', fnToggleModal);
+            elem_divOverlay.addEventListener('click', fnToggleModal);
+            elem_btnCloseModal.addEventListener('click', fnToggleModal);
         }
     };
 
