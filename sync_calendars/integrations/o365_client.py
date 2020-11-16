@@ -95,3 +95,7 @@ class O365Client:
         req_url = self.api_base_url + 'subscriptions'
         print(req_data)
         return self.app.post(req_url, json=req_data)
+
+    def get_calendar_event(self, event_id):
+        """Method to retrieve event details"""
+        

@@ -164,7 +164,6 @@ function App() {
             const elem_txtDestSyncEmail = document.getElementById('txtDestSyncEmail');
             const elem_btnSaveSyncFlow = document.getElementById('btnSaveSyncFlow');
             const elem_btnShowModal = document.getElementById('btnShowModal');
-            const elem_divOverlay = document.querySelector('.modal-overlay');
             const elem_btnCloseModal = document.querySelector('.modal-close');
 
             elem_txtSourceSyncEmail.addEventListener('blur', fnCheckEmailConnectStatus);
@@ -173,7 +172,6 @@ function App() {
             elem_txtDestSyncEmail.addEventListener('change', fnResetEmailStatus);
             elem_btnSaveSyncFlow.addEventListener('click', fnSaveSyncFlow);
             elem_btnShowModal.addEventListener('click', fnToggleModal);
-            elem_divOverlay.addEventListener('click', fnToggleModal);
             elem_btnCloseModal.addEventListener('click', fnToggleModal);
         }
     };

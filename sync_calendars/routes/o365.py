@@ -53,13 +53,14 @@ def callback():
     """Handle callback from O365"""
 
     session_scope = session['o365_connect_scope']
-    token = o365_app.authorize_access_token(scope=session_scope)
-    print(token)
+    token = o365_app.authorize_access_token(scope=session_scope)    
     # Make sure authentication user email matches
     user_info = o365_app.get('me').json()
-    connect_email = session['o365_connect_email']
+    connect_email = session['o365_connect_email'].lower()
 
-    if not user_info['userPrincipalName'] == connect_email:
+    if not user_info['userPrincipalName'].lower() == connect_email:
+        print("Email mismatch")
+        print(user_info)
         raise BadRequest()
 
     # save auth tokens in DB for later use
@@ -98,7 +99,7 @@ def change_notification():
 
     notification = request.get_json()
     
-    for notif in notification.value:
-        caled
+    for notif in notification['value']:
+        calendar_tasks.handle_change_notification.delay(notif)
 
     return make_response('Ok', 202)

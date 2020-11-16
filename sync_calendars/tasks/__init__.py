@@ -1,7 +1,5 @@
 """Initialize tasks engine"""
 
-
-
 def init_celery_app(celery, app):
     """Function to create new Celery object to use with Flask app"""
     # celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'],
