@@ -7,6 +7,8 @@ verify_ssl = true
 pylint = "*"
 pylint-flask-sqlalchemy = "*"
 autopep8 = "*"
+pytest = "*"
+testing.postgresql = "*"
 
 [packages]
 flask = "*"
