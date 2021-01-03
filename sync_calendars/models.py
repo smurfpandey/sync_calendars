@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.schema import PrimaryKeyConstraint
 
 from sync_calendars import db
 
@@ -90,3 +91,20 @@ class SyncFlow(db.Model):
 
     def __repr__(self):
         return '<SyncFlow {}>'.format(self.id)
+
+class EventMap(db.Model):
+    """Model for mapping copied event IDs"""
+
+    __tablename__ = 'event_map'
+    source_cal = db.Column(UUID(as_uuid=True), db.ForeignKey(Calendar.id, ondelete='CASCADE'))
+    source_event = db.Column(UUID(as_uuid=True), nullable=False)
+    dest_cal = db.Column(UUID(as_uuid=True), db.ForeignKey(Calendar.id, ondelete='CASCADE'))
+    dest_event = db.Column(UUID(as_uuid=True), nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            source_event,
+            dest_event
+        ),
+        {}
+    )

@@ -103,3 +103,4 @@ def change_notification():
         calendar_tasks.handle_change_notification.delay(notif)
 
     return make_response('Ok', 202)
+

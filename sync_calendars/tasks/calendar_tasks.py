@@ -5,7 +5,7 @@ from celery.utils.log import get_task_logger
 
 from sync_calendars import celery, db
 from sync_calendars.integrations import O365Client
-from sync_calendars.models import Calendar, SyncFlow
+from sync_calendars.models import Calendar, SyncFlow, EventMap
 
 logger = get_task_logger(__name__)
 
@@ -86,27 +86,86 @@ def handle_change_notification(notification):
     source_o365_client = O365Client(token=source_o365_token)
     
     # 2. Get all destinations for this Calendar
-    syncs = SyncFlow.query.filter_by(source=this_cal.id)
+    sync_destinations = SyncFlow.query.with_entities(SyncFlow.destination).filter_by(source=this_cal.id)
 
     # 3. Replicate the change to all destinations
-    if change_type == "deleted":
-        # Find all duplicated events
-        # Delete them all
-        return True
     
-    if change_type == "updated":
-        # Get details from MS
-        o365_event = source_o365_client.get_calendar_event(event_id)
+    # 3.3 Delete
+    if change_type == 'deleted':        
+        return handle_event_delete(event_id, sync_destinations)
+
+    # Get Event
+    event_resp = source_o365_client.get_calendar_event(event_id)
+    o365_event = event_resp.json()
+
+    if event_resp.status_code == 404:
+        # Event has been deleted
+        return handle_event_delete(event_id, sync_destinations)
+    
+    if event_resp.status_code is not 200:
+        logger.error('Error getting calendar event details: %s', o365_event['error']['code'])
+        return False
+
+    # 3.1 Create
+    if change_type == 'created':        
+        # Create a copy in all destinations
+        return handle_event_created(this_cal, o365_event, sync_destinations)        
+
+    # 3.2 Update
+    if change_type == 'updated':
         # Update all events with new details
         return True
+
     
-    if change_type == "created":
-        # Create duplicates
-        return True
+    # Unknown event
+    return True
+    
+    
+def handle_event_delete(event_id, destinations):
+    """Handle event deleted notification"""
+    # Find all duplicated events
+    # Delete them all
     
     return False
-    # 3.1 Create/Update
-    # 3.1.1 Try to get the calendar details
-    # 3.1.2 If no details, treat it as delete event
-    # 3.1.1 Check if corresponding event exists in destination
-    # 3.2 Delete
+
+def handle_event_created(source_cal, event, destinations):
+    """Handle event created notification"""
+    for record in destinations:
+        dest_cal = record.destination
+        try:
+            copy_event = {
+                'subject': f"Sync Calendar :: {event['subject']}",
+                'start': event['start'],
+                'end': event['end'],
+                'body': {
+                    'contentType': "html",
+                    'content': f'Event copied by Sync Calendars app. Source Calendar: {source_cal.email}'
+                }
+            }
+            dest_o365_client = O365Client(calendar=dest_cal)
+
+            event_resp = dest_o365_client.create_calendar_event(copy_event)
+            dest_event = event_resp.json()
+            
+            if 'id' not in dest_event:
+                # We failed :(
+                logger.error('Failed to create o365 event. ', extra=dest_event['error'])
+                continue
+
+            # Save in DB
+            event_map = EventMap(
+                source_cal=source_cal,
+                source_event=event['id'],
+                dest_cal=dest_cal,
+                dest_event=dest_event['id'],
+            )
+
+            db.session.add(event_map)
+
+        except Exception as ex:
+            logger.exception('Error creating duplicate event', exc_info=ex)
+            return False
+
+    db.session.commit()
+    return True
+        

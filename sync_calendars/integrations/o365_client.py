@@ -12,12 +12,14 @@ from sync_calendars.models import Calendar, CalendarEnum
 class O365Client:
     """ O365 client class"""
 
-    def __init__(self, token=None, email=None):
+    def __init__(self, token=None, email=None, calendar=None):
         """Contstructor"""
         if token is not None:
             self.app = self.__init_with_token(token)
         elif email is not None:
             self.__init_with_email(email)
+        elif calendar is not None:
+            self.__init_with_calendar(calendar)
         else:
             self.app = oauth.register(
                 'o365',
@@ -39,6 +41,21 @@ class O365Client:
     def __init_with_email(self, email):
         """Initialize O365 client by finding tokens in DB"""
         cal = Calendar.query.filter_by(email=email).first()
+
+        if cal is None:
+            return
+
+        token = {
+            'access_token': cal.access_token,
+            'refresh_token': cal.refresh_token,
+            'token_type': 'bearer',
+            'expires_at': cal.expires_at.timestamp()
+        }
+        self.app = self.__init_with_token(token)
+    
+    def __init_with_calendar(self, cal_id):
+        """Initialize O365 client by finding tokens in DB"""
+        cal = Calendar.query.get(cal_id)
 
         if cal is None:
             return
@@ -92,10 +109,31 @@ class O365Client:
             'expirationDateTime': expiration.isoformat() + "Z",
             'clientState': str(uuid4())
         }
+        req_headers = {
+            'Prefer': 'IdType="ImmutableId"'
+        }
         req_url = self.api_base_url + 'subscriptions'
-        print(req_data)
-        return self.app.post(req_url, json=req_data)
+        return self.app.post(req_url, json=req_data, headers=req_headers)
 
     def get_calendar_event(self, event_id):
         """Method to retrieve event details"""
+
+        req_url = self.api_base_url + f'me/events/{event_id}'
+        req_headers = {
+            'Prefer': 'IdType="ImmutableId"'
+        }
+        return self.app.get(req_url, headers=req_headers)
+
+    def create_calendar_event(self, event):
+        """Method to create a new calendar event"""
+        
+        req_url = self.api_base_url + 'me/events'
+        req_headers = {
+            'Prefer': 'IdType="ImmutableId"'
+        }
+        return self.app.post(req_url, json=event, headers=req_headers)
+
+
+
+        
         
