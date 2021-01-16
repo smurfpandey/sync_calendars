@@ -45,7 +45,7 @@ def create_app():
     oauth.init_app(app)
 
     with app.app_context():
-        from sync_calendars.routes import auth, o365, views, api
+        from sync_calendars.routes import auth, o365, views, api # pylint: disable=import-outside-toplevel
 
         # Register Blueprints
         app.register_blueprint(views.main_bp)

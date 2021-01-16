@@ -19,7 +19,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Static Assets
-    STATIC_FOLDER = '/static/dist'    
+    STATIC_FOLDER = '/static/dist'
 
     # Auth0
     AUTH0_CLIENT_ID = environ.get('AUTH0_CLIENT_ID')
