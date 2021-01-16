@@ -100,6 +100,7 @@ class EventMap(db.Model):
     source_event = db.Column(UUID(as_uuid=True), nullable=False)
     dest_cal = db.Column(UUID(as_uuid=True), db.ForeignKey(Calendar.id, ondelete='CASCADE'))
     dest_event = db.Column(UUID(as_uuid=True), nullable=False)
+    is_deleted = db.Column(db.Boolean, unique=False, default=False)
 
     __table_args__ = (
         PrimaryKeyConstraint(

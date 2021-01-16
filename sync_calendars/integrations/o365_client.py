@@ -52,7 +52,7 @@ class O365Client:
             'expires_at': cal.expires_at.timestamp()
         }
         self.app = self.__init_with_token(token)
-    
+
     def __init_with_calendar(self, cal_id):
         """Initialize O365 client by finding tokens in DB"""
         cal = Calendar.query.get(cal_id)
@@ -126,14 +126,24 @@ class O365Client:
 
     def create_calendar_event(self, event):
         """Method to create a new calendar event"""
-        
+
         req_url = self.api_base_url + 'me/events'
         req_headers = {
             'Prefer': 'IdType="ImmutableId"'
         }
         return self.app.post(req_url, json=event, headers=req_headers)
 
+    def delete_calendar_event(self, event_id):
+        """Method to delete a calendar event"""
 
+        req_url = self.api_base_url + f'me/events/{event_id}'
+        return self.app.delete(req_url)
 
-        
-        
+    def update_calendar_event(self, event_id, event_obj):
+        """Method for updating a calendar event"""
+
+        req_url = self.api_base_url + f'me/events/{event_id}'
+        req_headers = {
+            'Prefer': 'IdType="ImmutableId"'
+        }
+        return self.app.patch(req_url, json=event_obj, headers=req_headers)
