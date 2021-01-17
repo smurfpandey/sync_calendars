@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest
 from flask import request, Blueprint, url_for, session, make_response
 from flask_login import current_user, login_required
 
-from sync_calendars import db
+from sync_calendars.extensions import db
 from sync_calendars.integrations import O365Client
 from sync_calendars.models import Calendar, CalendarEnum
 from sync_calendars.tasks import calendar_tasks
@@ -16,6 +16,7 @@ o365_bp = Blueprint(
 )
 
 o365_app = O365Client().app
+
 
 @o365_bp.route('/o365/connect')
 @login_required
@@ -53,7 +54,7 @@ def callback():
     """Handle callback from O365"""
 
     session_scope = session['o365_connect_scope']
-    token = o365_app.authorize_access_token(scope=session_scope)    
+    token = o365_app.authorize_access_token(scope=session_scope)
     # Make sure authentication user email matches
     user_info = o365_app.get('me').json()
     connect_email = session['o365_connect_email'].lower()
@@ -90,6 +91,7 @@ def callback():
 
     return "Ok"
 
+
 @o365_bp.route('/o365/change', methods=['POST'])
 def change_notification():
     """Handle change notifications from O365"""
@@ -98,9 +100,8 @@ def change_notification():
         return make_response(validation_token, 200)
 
     notification = request.get_json()
-    
+
     for notif in notification['value']:
         calendar_tasks.handle_change_notification.delay(notif)
 
     return make_response('Ok', 202)
-

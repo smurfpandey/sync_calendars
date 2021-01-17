@@ -5,7 +5,7 @@ from flask import redirect, Blueprint, url_for
 from flask_login import current_user, login_user
 
 from sync_calendars.models import User
-from sync_calendars import db, login_manager, oauth
+from sync_calendars.extensions import db, login_manager, oauth
 
 # Blueprint Configuration
 auth_bp = Blueprint(

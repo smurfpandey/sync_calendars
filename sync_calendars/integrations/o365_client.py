@@ -5,7 +5,7 @@ from uuid import uuid4
 from authlib.integrations.requests_client import OAuth2Session
 from flask import current_app
 
-from sync_calendars import db, oauth
+from sync_calendars.extensions import db, oauth
 from sync_calendars.models import Calendar, CalendarEnum
 
 

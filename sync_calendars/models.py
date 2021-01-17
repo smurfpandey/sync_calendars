@@ -8,7 +8,7 @@ from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.schema import PrimaryKeyConstraint
 
-from sync_calendars import db
+from sync_calendars.extensions import db
 
 user_cal_association = db.Table('user_calendar',
     db.Column('user_id', UUID(as_uuid=True), db.ForeignKey('users.id', ondelete='CASCADE')),
@@ -37,7 +37,7 @@ class User(UserMixin, db.Model):
 @dataclass
 class CalendarEnum(str, Enum):
     """Enum defining what calendars app supports"""
-    O365 = 'o365'
+    O365 = 'o365'   # pylint: disable=invalid-name
 
     def __hash__(self):
         return hash(self.value)

@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify, make_response, request
 from flask_login import current_user, login_required
 
-from sync_calendars import db
+from sync_calendars.extensions import db
 from sync_calendars.models import Calendar, User, SyncFlow
 from sync_calendars.tasks import calendar_tasks
 
@@ -76,7 +76,9 @@ def save_sync_for_user():
     )
 
     # 2.1 Make sure this sync is not a duplicate
-    existing_flow = SyncFlow.query.filter_by(source=source_cal.id, destination=dest_cal.id, user=current_user.id).first()
+    existing_flow = SyncFlow.query.filter_by(
+        source=source_cal.id, destination=dest_cal.id, user=current_user.id
+    ).first()
     if existing_flow is not None:
         return custom_error({
             'status': 'SYNC_DUPLICATE',
@@ -84,12 +86,13 @@ def save_sync_for_user():
 
     db.session.add(sync_flow)
     db.session.commit()
-    
+
     # 3. Create "work": Start Sync
     # 3.1. Subscribe to get notifications from source calendar
     calendar_tasks.subscribe_to_calendar.delay(source_cal.to_simple_obj())
     # 3.2. Update destination with all future events from source
-    calendar_tasks.initial_load.delay(source_cal.to_simple_obj(), dest_cal.to_simple_obj())
+    calendar_tasks.initial_load.delay(
+        source_cal.to_simple_obj(), dest_cal.to_simple_obj())
 
     # 4. Tada!
     return make_response('Ok', 201)

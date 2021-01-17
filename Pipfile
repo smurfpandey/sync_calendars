@@ -10,16 +10,18 @@ autopep8 = "*"
 pytest = "*"
 
 [packages]
+celery = "*"
+environs = "*"
 flask = "*"
+flask-caching = "*"
+flask-login = "*"
+flask-migrate = "*"
 flask-sqlalchemy = "*"
 gunicorn = "*"
 authlib = "*"
 requests = "*"
-flask-login = "*"
-Python-dotenv = "*"
 psycopg2-binary = "*"
 sentry-sdk = {extras = ["flask"], version = "*"}
-celery = "*"
 
 [requires]
 python_version = "3.7"

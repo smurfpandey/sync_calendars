@@ -3,16 +3,18 @@ from datetime import datetime
 
 from celery.utils.log import get_task_logger
 
-from sync_calendars import celery, db
+from sync_calendars.extensions import celery, db
 from sync_calendars.integrations import O365Client
 from sync_calendars.models import Calendar, SyncFlow, EventMap
 
 logger = get_task_logger(__name__)
 
+
 @celery.task()
 def initial_load(source_cal, destination_cal):
     """Do initial sync of copying all future events from source to destination"""
     return True
+
 
 @celery.task()
 def subscribe_to_calendar(calendar):
@@ -61,6 +63,7 @@ def subscribe_to_calendar(calendar):
     o365_client.close()
     return True
 
+
 @celery.task()
 def handle_change_notification(notification):
     """Process individual notification from O365"""
@@ -70,9 +73,11 @@ def handle_change_notification(notification):
     event_id = notification['resourceData']['id']
 
     # 1. Find Calendar of this subscription
-    this_cal = Calendar.query.filter_by(subscription_id=subscription_id).first()
+    this_cal = Calendar.query.filter_by(
+        subscription_id=subscription_id).first()
     if this_cal is None:
-        logger.warn('No calendar found for subscription id %s', subscription_id)
+        logger.warning('No calendar found for subscription id %s',
+                    subscription_id)
         return True
 
     # TODO: Verify client state
@@ -101,10 +106,11 @@ def handle_change_notification(notification):
 
     if event_resp.status_code == 404:
         # Event has been deleted
-        return handle_event_delete(event_id, sync_destinations)
+        return handle_event_delete(event_id)
 
-    if event_resp.status_code is not 200:
-        logger.error('Error getting calendar event details: %s', o365_event['error']['code'])
+    if event_resp.status_code != 200:
+        logger.error('Error getting calendar event details: %s',
+                     o365_event['error']['code'])
         return False
 
     # 3.1 Create
@@ -116,7 +122,6 @@ def handle_change_notification(notification):
     if change_type == 'updated':
         # Update all events with new details
         return True
-
 
     # Unknown event
     return True
@@ -134,19 +139,23 @@ def handle_event_delete(event_id):
         try:
             dest_o365_client = O365Client(calendar=dest_cal)
 
-            event_resp = dest_o365_client.delete_calendar_event(record.dest_event)
+            event_resp = dest_o365_client.delete_calendar_event(
+                record.dest_event)
             if event_resp.status_code != 204:
                 # Event deletion failed
-                logger.error('Failed to delete o365 event. ', extra=event_resp['error'])
+                logger.error('Failed to delete o365 event. ',
+                             extra=event_resp['error'])
                 continue
 
             record.is_deleted = True
         except Exception as ex:
-            logger.exception('Error propagating delete notification', exc_info=ex)
+            logger.exception(
+                'Error propagating delete notification', exc_info=ex)
             continue
 
     db.session.commit()
     return True
+
 
 def handle_event_created(source_cal, event, destinations):
     """Handle event created notification"""
@@ -159,7 +168,7 @@ def handle_event_created(source_cal, event, destinations):
                 'end': event['end'],
                 'body': {
                     'contentType': "html",
-                    'content': f'Event copied by Sync Calendars app. Source Calendar: {source_cal.email}'
+                    'content': f'Event copied by Sync Calendars app. Source Calendar: {source_cal.email}'   # pylint: disable=line-too-long
                 }
             }
             dest_o365_client = O365Client(calendar=dest_cal)
@@ -169,7 +178,8 @@ def handle_event_created(source_cal, event, destinations):
 
             if 'id' not in dest_event:
                 # We failed :(
-                logger.error('Failed to create o365 event. ', extra=dest_event['error'])
+                logger.error('Failed to create o365 event. ',
+                             extra=dest_event['error'])
                 continue
 
             # Save in DB
@@ -189,6 +199,7 @@ def handle_event_created(source_cal, event, destinations):
     db.session.commit()
     return True
 
+
 def handle_event_updated(source_cal, event):
     """Handle event created notification"""
     copied_events = EventMap.query.filter_by(source_event=event['id'])
@@ -204,7 +215,7 @@ def handle_event_updated(source_cal, event):
                 'end': event['end'],
                 'body': {
                     'contentType': "html",
-                    'content': f'Event copied by Sync Calendars app. Source Calendar: {source_cal.email}'
+                    'content': f'Event copied by Sync Calendars app. Source Calendar: {source_cal.email}'   # pylint: disable=line-too-long
                 }
             }
 
@@ -216,7 +227,8 @@ def handle_event_updated(source_cal, event):
 
             if 'id' not in dest_event:
                 # We failed :(
-                logger.error('Failed to create o365 event. ', extra=dest_event['error'])
+                logger.error('Failed to create o365 event. ',
+                             extra=dest_event['error'])
 
         except Exception as ex:
             logger.exception('Error updating duplicate event', exc_info=ex)
