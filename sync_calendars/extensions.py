@@ -11,7 +11,10 @@ from flask_sqlalchemy import SQLAlchemy
 
 
 class FlaskCelery(Celery):
-    """Flask-ify celery: https://stackoverflow.com/a/14146403/1151361"""
+    """Flask-ify celery:
+        - https://stackoverflow.com/a/14146403/1151361
+        - https://github.com/celery/celery/issues/5282
+    """
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)

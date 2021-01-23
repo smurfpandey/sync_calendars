@@ -1,0 +1,16 @@
+# Ignore everything
+**
+__pycache__
+
+# ... except for dependencies and source
+# Python
+!Pipfile
+!Pipfile.lock
+!sync_calendars/
+
+# Frontend
+!package.json
+!package-lock.json
+!postcss.config.js
+!tailwind.config.js
+!webpack.config.js
