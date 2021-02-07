@@ -11,7 +11,7 @@ RUN apt update && apt install -y libpq5
 
 FROM base AS python-deps
 
-RUN apt-get install build-essential libssl-dev libffi-dev
+RUN apt install -y build-essential libssl-dev libffi-dev
 RUN pip install cryptography
 
 # Install pipenv and compilation dependencies
