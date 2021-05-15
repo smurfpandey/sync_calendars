@@ -1,4 +1,4 @@
-FROM python:3.7-slim-buster as base
+FROM python:3.8-slim as base
 
 # Setup env
 ENV LANG C.UTF-8
@@ -7,11 +7,11 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONFAULTHANDLER 1
 
 # Install runtime dependencies
-RUN apt update && apt install -y libpq5
+RUN apt-get update && apt-get install -y libpq5
 
 FROM base AS python-deps
 
-RUN apt install -y build-essential libssl-dev libffi-dev
+RUN apt-get install -y build-essential libssl-dev libffi-dev
 RUN pip install cryptography
 
 # Install pipenv and compilation dependencies
@@ -25,7 +25,7 @@ RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --skip-lock
 ##########################################
 # Build frontend
 ##########################################
-FROM node:14 as frontend-build
+FROM node:14-slim as frontend-build
 
 COPY package*.json ./
 RUN npm install
