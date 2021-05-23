@@ -35,6 +35,9 @@ RUN npm run build
 
 FROM base AS runtime
 
+# Install newrelic
+RUN pip install --no-cache-dir newrelic
+
 # Copy virtual env from python-deps stage
 COPY --from=python-deps /.venv /.venv
 ENV PATH="/.venv/bin:$PATH"
@@ -47,4 +50,5 @@ COPY . .
 COPY --from=frontend-build ./sync_calendars/static sync_calendars/static
 
 # Run the application
-CMD [ "gunicorn", "-b 0.0.0.0:5000", "sync_calendars.app:create_app()"]
+ENTRYPOINT ["newrelic-admin", "run-program"]
+CMD [ "gunicorn", "-w 4", "-b 0.0.0.0:5000", "--preload", "sync_calendars.app:create_app()"]
