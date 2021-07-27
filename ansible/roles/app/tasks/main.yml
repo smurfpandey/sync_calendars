@@ -1,0 +1,25 @@
+---
+
+- name: Create app directory
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ app_directory }}"
+
+- name: Pull required images from docker hub
+  docker_image:
+    name: "{{ item }}"
+    source: pull
+  with_items:
+    - "{{ app_docker_image }}"
+
+- name: Create postgres db & user
+  ansible.builtin.command: docker exec -it postgres /opt/scripts/create-database.sh {{ app_db_name }} {{ app_db_user }} {{ app_db_pass }}
+  args:
+    creates: "{{ app_directory }}/db_created_{{ app_db_name }}"
+
+- name: Mark database creation
+  ansible.builtin.file:
+    path: "{{ app_directory }}/db_created_{{ app_db_name }}"
+    state: touch

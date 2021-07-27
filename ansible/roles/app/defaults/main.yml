@@ -1,0 +1,28 @@
+---
+
+app_directory: '/opt/sync_cal'
+app_service_name: 'sync_cal'
+app_docker_image: 'default'
+app_port: 5000
+app_db_name: 'sync_cal'
+app_db_user: 'sync_cal'
+app_db_pass: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          61333035646364653737353033343334656238383335353836303733663237646437366465316661
+          3139346333626465623737353533633565663131336462380a613961346439386231323730643936
+          65353635663461333137316262396161396162643234373261333531303533623430626530656565
+          3565643639613365380a653639643431663432643362383462313635376163373261366333383064
+          38666161386431613634396239336561626531333439653035316364623962373166383633626631
+          6639373436336136646634646561396665396662336539646361
+domain_name: 'sync-cal.smurfville.app'
+
+nginx_network_name: 'nginx_default'
+nginx_config_directory: '/opt/nginx/config'
+nginx_webhost_directory: '/opt/nginx/web'
+
+postgres_network_name: 'postgres_default'
+
+docker_compose_binary: /usr/local/bin/docker-compose
+
+letsencrypt_cert_location: /etc/letsencrypt
+letsencrypt_cert_name: 'smurfville.app'

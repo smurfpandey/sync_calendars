@@ -53,6 +53,8 @@ def create_app(config_object="sync_calendars.config"):
     register_shellcontext(app)
     configure_logger(app)
 
+    app.logger.info("Application startup complete")
+
     return app
 
 def register_extensions(app):

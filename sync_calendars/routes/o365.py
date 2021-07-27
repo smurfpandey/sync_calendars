@@ -89,6 +89,7 @@ def callback():
 
     db.session.commit()
 
+    # TODO: Auto close browser window post successful callback
     return "Ok"
 
 

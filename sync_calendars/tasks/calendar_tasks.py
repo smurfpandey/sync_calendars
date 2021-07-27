@@ -1,5 +1,5 @@
 """Calendar related tasks"""
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from celery.utils.log import get_task_logger
 
@@ -9,16 +9,26 @@ from sync_calendars.models import Calendar, SyncFlow, EventMap
 
 logger = get_task_logger(__name__)
 
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    """
+        Schedule periodic tasks
+    """
+    # Resubsribe to notifications about to expire
+    sender.add_periodic_task(timedelta(hours=12), resubscribe_calendars.s(), name='Resubscribe calendar change notification every 12hrs')
+
 
 @celery.task()
 def initial_load(source_cal, destination_cal):
     """Do initial sync of copying all future events from source to destination"""
     return True
 
-
 @celery.task()
 def subscribe_to_calendar(calendar):
     """Subscribe to changes on O365 Calendar"""
+
+    logger.info('START:: task execution subscribe_to_calendar(%s)', calendar['id'])
+
     # 1. Check if we have a subscription already
     obj_cal = Calendar.query.get(calendar['id'])
 
@@ -59,10 +69,29 @@ def subscribe_to_calendar(calendar):
     db.session.commit()
 
     # 3. Set schedule to renew?
+    # TODO: Set future task to renew subscription
 
     o365_client.close()
+
+    logger.info('END:: task execution subscribe_to_calendar(%s)', calendar['id'])
+
     return True
 
+@celery.task()
+def resubscribe_calendars():
+    expected_expiry = datetime.utcnow() + timedelta(hours=13)
+    # Get All Calendar Subscriptions
+    all_calendars = Calendar.query.filter(Calendar.subscription_id.isnot(None)).all()
+
+    for calendar in all_calendars:
+        expiry_date = calendar.change_subscrition['expirationDateTime']
+        expiry_date = datetime.strptime(expiry_date, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+        if expiry_date < expected_expiry:
+            logger.info("Calendar subscription expiring soon. Going to renew.")
+            return True
+        else:
+            logger.info('Calendar expiry in future. No need to renew')
 
 @celery.task()
 def handle_change_notification(notification):

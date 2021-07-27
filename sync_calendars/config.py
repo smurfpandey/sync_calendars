@@ -14,9 +14,9 @@ env.read_env()
 FLASK_APP = env.str('FLASK_APP')
 ENV = env.str('FLASK_ENV', default="production")
 SECRET_KEY = env.str("SECRET_KEY")
-APP_HOSTNAME = env.str('APP_HOSTNAME')
+APP_BASE_URL = env.str('APP_BASE_URL') # Base URL of the app
 CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
-LOG_LEVEL = env.str('LOG_LEVEL')
+LOG_LEVEL = env.str('LOG_LEVEL', default="INFO")
 
 # Flask-SQLAlchemy
 SQLALCHEMY_DATABASE_URI = env.str('DATABASE_URL')
@@ -43,4 +43,4 @@ O365_API_BASE_URL = "https://graph.microsoft.com/v1.0/"
 
 # Celery
 broker_url = env.str('CELERY_BROKER_URL')
-result_backend = env.str('CELERY_RESULT_BACKEND')
+# result_backend = env.str('CELERY_RESULT_BACKEND')

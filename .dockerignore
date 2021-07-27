@@ -7,6 +7,7 @@ __pycache__
 !Pipfile
 !Pipfile.lock
 !sync_calendars/
+!migrations/
 
 # Frontend
 !package.json

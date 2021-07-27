@@ -99,7 +99,7 @@ class O365Client:
 
     def create_change_subscription(self):
         """Method to create change subscription"""
-        notification_url = current_app.config['APP_HOSTNAME'] + '/o365/change'
+        notification_url = current_app.config['APP_BASE_URL'] + '/o365/change'
         expiration = datetime.utcnow() + timedelta(minutes=4230)
         req_data = {
             'changeType': 'created,updated,deleted',
@@ -114,6 +114,18 @@ class O365Client:
         }
         req_url = self.api_base_url + 'subscriptions'
         return self.app.post(req_url, json=req_data, headers=req_headers)
+
+    def renew_change_subscription(self, subscription_id):
+        """Renew existing subscription"""
+        expiration = datetime.utcnow() + timedelta(minutes=4230)
+        req_data = {
+            'expirationDateTime': expiration.isoformat() + "Z"
+        }
+        req_headers = {
+            'Prefer': 'IdType="ImmutableId"'
+        }
+        req_url = self.api_base_url + f'subscriptions/{subscription_id}'
+        return self.app.patch(req_url, json=req_data, headers=req_headers)
 
     def get_calendar_event(self, event_id):
         """Method to retrieve event details"""
