@@ -12,3 +12,6 @@ end_of_line = lf
 
 [*.yml]
 indent_size = 2
+
+[*.yml.j2]
+indent_size = 2

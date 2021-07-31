@@ -1,0 +1,36 @@
+#jinja2: lstrip_blocks: "True"
+
+version: '3.2'
+
+services:
+  {{ app_service_name }}:
+    image: {{ app_docker_image }}
+    container_name: "sync_calendars_web"
+    networks:
+      - {{ nginx_network_name }}
+      - {{ postgres_network_name }}
+      - {{ rabbitmq_network_name }}
+      - default
+    environment:
+      DATABASE_URL: "postgresql+psycopg2://{{ app_db_user }}:{{ app_db_pass }}@postgres/{{ app_db_name }}"
+      CELERY_BROKER_URL: "amqp://rabbitmq/{{ rabbitmq_vhost_name }}"
+      AUTH0_CLIENT_ID: "{{ lookup('env', 'AUTH0_CLIENT_ID') }}"
+      AUTH0_CLIENT_SECRET: "{{ lookup('env', 'AUTH0_CLIENT_SECRET') }}"
+      AUTH0_BASE_URL: "{{ lookup('env', 'AUTH0_BASE_URL') }}"
+      SECRET_KEY: "{{ app_flask_secret }}"
+      APP_BASE_URL: https://{{ domain_name }}
+      O365_CLIENT_ID: "{{ lookup('env', 'O365_CLIENT_ID') }}"
+      O365_CLIENT_SECRET: "{{ lookup('env', 'O365_CLIENT_SECRET') }}"
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:{{ fluentbit_port }}
+        tag: sync_cal
+
+networks:
+  {{ nginx_network_name }}:
+    external: true
+  {{ postgres_network_name }}:
+    external: true
+  {{ rabbitmq_network_name }}:
+    external: true
