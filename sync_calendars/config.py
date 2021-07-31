@@ -17,6 +17,7 @@ SECRET_KEY = env.str("SECRET_KEY")
 APP_BASE_URL = env.str('APP_BASE_URL') # Base URL of the app
 CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
 LOG_LEVEL = env.str('LOG_LEVEL', default="INFO")
+PREFERRED_URL_SCHEME = 'https'
 
 # Flask-SQLAlchemy
 SQLALCHEMY_DATABASE_URI = env.str('DATABASE_URL')
