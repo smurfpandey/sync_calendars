@@ -34,3 +34,6 @@ docker_compose_binary: /usr/local/bin/docker-compose
 
 letsencrypt_cert_location: /etc/letsencrypt
 letsencrypt_cert_name: 'smurfville.app'
+
+fluentbit_network_name: fluentbit_default
+fluentbit_port: 24224
