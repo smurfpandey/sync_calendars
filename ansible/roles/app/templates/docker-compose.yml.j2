@@ -21,6 +21,7 @@ services:
       APP_BASE_URL: https://{{ domain_name }}
       O365_CLIENT_ID: "{{ lookup('env', 'O365_CLIENT_ID') }}"
       O365_CLIENT_SECRET: "{{ lookup('env', 'O365_CLIENT_SECRET') }}"
+      SENTRY_DSN: "{{ lookup('env', 'SENTRY_DSN') }}"
     logging:
       driver: fluentd
       options:
