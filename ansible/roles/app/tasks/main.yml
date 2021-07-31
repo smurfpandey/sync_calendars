@@ -23,3 +23,16 @@
   ansible.builtin.file:
     path: "{{ app_directory }}/db_created_{{ app_db_name }}"
     state: touch
+
+- name: Create rabbitmq vhosts
+  ansible.builtin.command: docker exec -it rabbitmq rabbitmqctl add_vhost {{ rabbitmq_vhost_name }}
+  args:
+    creates: "{{ app_directory }}/rabbitmq_vhost_created_{{ rabbitmq_vhost_name }}"
+
+- name: Mark rabbitmq vhost creation
+  ansible.builtin.file:
+    path: "{{ app_directory }}/rabbitmq_vhost_created_{{ rabbitmq_vhost_name }}"
+    state: touch
+
+
+
