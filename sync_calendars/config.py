@@ -11,7 +11,7 @@ from environs import Env
 env = Env()
 env.read_env()
 
-FLASK_APP = env.str('FLASK_APP')
+# FLASK_APP = env.str('FLASK_APP')
 ENV = env.str('FLASK_ENV', default="production")
 SECRET_KEY = env.str("SECRET_KEY")
 APP_BASE_URL = env.str('APP_BASE_URL') # Base URL of the app
