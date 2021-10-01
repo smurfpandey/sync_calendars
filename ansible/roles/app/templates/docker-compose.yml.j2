@@ -22,6 +22,8 @@ services:
       O365_CLIENT_ID: "{{ lookup('env', 'O365_CLIENT_ID') }}"
       O365_CLIENT_SECRET: "{{ lookup('env', 'O365_CLIENT_SECRET') }}"
       SENTRY_DSN: "{{ lookup('env', 'SENTRY_DSN') }}"
+      NEW_RELIC_APP_NAME: "sync-calendars"
+      NEW_RELIC_LICENSE_KEY: "{{ lookup('env', 'NEW_RELIC_LICENSE_KEY') }}"
     logging:
       driver: fluentd
       options:

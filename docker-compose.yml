@@ -1,10 +1,58 @@
-version: '3.2'
+version: "3.2"
 
 services:
   rabbitmq:
-    image: rabbitmq:3-management
-    container_name: some-rabbit    
-    hostname: 'my-rabbit'
+    image: rabbitmq:3.8.16-management-alpine
+    container_name: "my-rabbit"
+    hostname: "my-rabbit"
     ports:
       - "15672:15672"
       - "5672:5672"
+
+  db:
+    image: postgres:13.3-alpine
+    container_name: "db"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: sync_calendars
+      POSTGRES_USER: sync_calendars
+      POSTGRES_DB: sync_calendars
+
+  app:
+    image: ghcr.io/smurfpandey/sync_calendars:11629eb3
+    command: gunicorn sync_calendars.app:create_app() --timeout 1000 --workers 4 --preload -b 0.0.0.0:5000 --log-level=DEBUG
+    ports:
+      - "5000:5000"
+    volumes:
+      - "${PWD}:/usr/app"
+    environment:
+      FLASK_DEBUG: 1
+      DATABASE_URL: "postgresql+psycopg2://sync_calendars:sync_calendars@db/sync_calendars"
+      CELERY_BROKER_URL: "amqp://rabbitmq//"
+
+  manage:
+    image: ghcr.io/smurfpandey/sync_calendars:11629eb3
+    entrypoint: flask
+    volumes:
+      - "${PWD}:/usr/app"
+    environment:
+      DATABASE_URL: "postgresql+psycopg2://sync_calendars:sync_calendars@db/sync_calendars"
+      CELERY_BROKER_URL: "amqp://rabbitmq//"
+    stdin_open: true
+    tty: true
+
+  worker:
+    image: ghcr.io/smurfpandey/sync_calendars:11629eb3
+    command: celery -A app:celery worker -B -l info
+    volumes:
+      - "${PWD}:/usr/app"
+    environment:
+      DATABASE_URL: "postgresql+psycopg2://sync_calendars:sync_calendars@db/sync_calendars"
+      CELERY_BROKER_URL: "amqp://rabbitmq//"
+
+  wait_for_it:
+    image: willwill/wait-for-it:latest
+    container_name: "wait_for_it"
+
+
